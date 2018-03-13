@@ -1,0 +1,96 @@
+#define F_CPU 16000000UL // 16 MHz
+#include <avr/io.h>
+#include <util/delay.h>
+int main(void)
+{
+	DDRC = 0xFF;
+	DDRB = 0xFF;
+	DDRD = 0xFE;
+	unsigned char LOOKUPTB[] = { 0b00111111,
+								 0b00000110,
+								 0b01011011,
+								 0b01001111,
+								 0b01100110,
+								 0b01101101,
+								 0b01111101,
+								 0b00000111,
+								 0b01111111,
+								 0b01101111,
+								 0b01110111,
+								 0b01111100,
+								 0b00111001,
+								 0b01011110,
+								 0b01111001,
+								 0b01110001 };
+	
+	unsigned char DISPLAY1,DISPLAY2;
+	unsigned char SWITCH_V;
+	unsigned char i, TENS=2 ,ONES=0,STATE,tog = 0b00000100;
+	DISPLAY1 = 0b01011100; //o
+	DISPLAY2 = 0b01110001; //F
+	PORTC = DISPLAY2;
+	PORTB = DISPLAY1;
+	PORTD = 0x00;
+	STATE = 0;
+
+while(1)
+{ 
+do{
+SWITCH_V = PIND & 0x01;
+_delay_ms(100);
+}while(SWITCH_V == 0x01);
+
+_delay_ms(100);
+
+if(STATE == 0)
+{
+DISPLAY2 = 0b01010100;
+PORTD = 0x02; 
+STATE = 1;
+}
+
+else 
+{
+for(i=0;i<20;i++)
+{
+DISPLAY1 = LOOKUPTB[TENS];
+DISPLAY2 = LOOKUPTB[ONES];
+tog = ~tog;
+tog &= 0b00000100;
+tog |= 0b00000010;
+
+PORTC = DISPLAY2;
+PORTB = DISPLAY1;
+PORTD = tog;
+
+_delay_ms(100);
+if(ONES==0)
+{
+if(TENS != 0)
+{ 
+ONES = 9;
+TENS--;
+}
+
+}
+else
+ONES--; 
+
+}
+
+STATE = 0;
+DISPLAY1 = 0b01011100;
+DISPLAY2 = 0b01110001;
+if(i==20)
+PORTD = 0x00;
+} 
+
+
+PORTC = DISPLAY2;
+PORTB = DISPLAY1;
+TENS = 2;
+ONES = 0; 
+}
+
+
+}
